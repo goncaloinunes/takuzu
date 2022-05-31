@@ -6,7 +6,7 @@
 # 00000 Nome1
 # 00000 Nome2
 
-import sys
+from sys import stdin
 from typing import Tuple
 from search import (
     Problem,
@@ -35,23 +35,44 @@ class TakuzuState:
 
 class Board:
     """Representação interna de um tabuleiro de Takuzu."""
+
+    def __init__(self, board, size):
+        self.board = board
+        self.size = size
     
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        # TODO
-        pass
+        
+        return self.board[row][col]
 
     def adjacent_vertical_numbers(self, row: int, col: int) -> Tuple[int, int]:
         """Devolve os valores imediatamente abaixo e acima,
         respectivamente."""
-        # TODO
-        pass
+
+        # Check if it is the last row
+        if row == self.size - 1:
+            return (None, self.board[row-1][col])
+        
+        # Check if it is the first row
+        if row == 0:
+            return (self.board[row+1][col], None)
+        
+        return (self.board[row+1][col], self.board[row-1][col])
+        
 
     def adjacent_horizontal_numbers(self, row: int, col: int) -> Tuple[int, int]:
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        # TODO
-        pass
+        
+        # Check if it is the last column
+        if col == self.size - 1:
+            return (self.board[row][col-1], None)
+
+        # Check if it is the first column
+        if col == 0:
+            return (None, self.board[row][col+1])
+
+        return (self.board[row][col-1], self.board[row][col+1])
 
     @staticmethod
     def parse_instance_from_stdin():
@@ -64,8 +85,28 @@ class Board:
             > from sys import stdin
             > stdin.readline()
         """
-        # TODO
-        pass
+
+        board = []
+        size = int(stdin.readline())
+        
+        for i in range(size):
+            board.append([])
+            row = stdin.readline().split(sep='\t')
+            for j in range(size):
+                board[i].append(int(row[j]))
+
+        return Board(board, size)
+
+    def __str__(self):
+        """Converte o tabuleiro para string."""
+
+        string = ""
+        for i in range(self.size):
+            for j in range(self.size):
+                string += str(self.board[i][j]) + " "
+            string += "\n"
+
+        return string
 
     # TODO: outros metodos da classe
 
@@ -111,4 +152,5 @@ if __name__ == "__main__":
     # Usar uma técnica de procura para resolver a instância,
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
-    pass
+
+    board = Board.parse_instance_from_stdin()
