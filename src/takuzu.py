@@ -98,6 +98,8 @@ class Board:
 
         for i in range(self.size):
             for j in range(self.size):
+                if self.board[i][j] == Board.EMPTY:
+                    return False
                 if(i != j and (self.equal_arrays(self.get_row(i), self.get_row(j)) or self.equal_arrays(self.get_col(i), self.get_col(j)))):
                     return False
 
@@ -106,14 +108,25 @@ class Board:
     def equal_zeros_and_ones(self) -> bool:
         """
         Verifica se cada linha e coluna do tabuleiro contem igual numero de 0's e 1's
-        Caution, this function is not 100% accurate, it can return false positives 
-        if the board is not completly filled with 0's and 1's.
         """
 
+        odd = self.board.size % 2 != 0
+
         for i in range(self.size):
-            if(sum(self.get_row(i)) - self.size / 2 not in (0, 0.5) or sum(self.get_col(i)) - self.size / 2 not in (0, 0.5)):
-                return False
-            
+            row = self.get_row(i)
+            col = self.get_col(i)
+
+            zeros_row, ones_row = TakuzuState.count_zeros_and_ones(row)
+            zeros_col, ones_col = TakuzuState.count_zeros_and_ones(col)
+
+            if not odd:
+                if zeros_row > self.size / 2 or zeros_col > self.size / 2 or ones_row > self.size / 2 or ones_col > self.size / 2:
+                    return False
+                    
+            else:
+                if zeros_row > self.size // 2 + 1 or zeros_col > self.size // 2 + 1 or ones_row > self.size // 2 + 1 or ones_col > self.size // 2 + 1:
+                    return False
+                    
         return True
 
     def less_than_two_equal_adjacents(self) -> bool:
@@ -188,10 +201,23 @@ class TakuzuState:
         return self.id < other.id
 
     @staticmethod
-    def count_occurrences(array: np.ndarray, value: int):
+    def count_zeros_and_ones(array: np.ndarray):        
+        zeros = 0
+        ones = 0
+        for i in range(array.size):
+            if array[i] == 0:
+                zeros += 1
+            elif array[i] == 1:
+                ones += 1
+
+        return zeros, ones
+
+    
+    @staticmethod
+    def count_occurrences(array: np.ndarray, number: int):
         count = 0
         for i in range(array.size):
-            if array[i] == value:
+            if array[i] == number:
                 count += 1
 
         return count
@@ -204,59 +230,83 @@ class TakuzuState:
 
         return -1
 
-    def find_action_due_to_adjacents(self) -> list:
+    @staticmethod
+    def find_empty_positions(array: np.ndarray) -> list:
+        empty_positions = []
+        for i in range(array.size):
+            if array[i] == Board.EMPTY:
+                empty_positions.append(i)
 
+        return empty_positions
+
+    def find_action_due_to_adjacents(self) -> list:
         for i in range(self.board.size):
             for j in range(self.board.size):
+                horizontal = self.board.adjacent_horizontal_numbers(i, j)
+                vertical = self.board.adjacent_vertical_numbers(i, j)
                 if self.board.get_number(i, j) == Board.EMPTY:
-                    horizontal = self.board.adjacent_horizontal_numbers(i, j)
+
                     if horizontal[0] == horizontal[1] and horizontal[0] != Board.EMPTY:
                         return [(i, j, 0 if horizontal[0] == 1 else 1)]
                     
-                    vertical = self.board.adjacent_vertical_numbers(i, j)
                     if vertical[0] == vertical[1] and vertical[0] != Board.EMPTY:
                         return [(i, j, 0 if vertical[0] == 1 else 1)]
+                else:
+                    if horizontal[0] == self.board.get_number(i, j) and horizontal[1] == Board.EMPTY:
+                        return [(i, j+1, 0 if horizontal[0] == 1 else 1)]
+                    if horizontal[1] == self.board.get_number(i, j) and horizontal[0] == Board.EMPTY:
+                        return [(i, j-1, 0 if horizontal[1] == 1 else 1)]
+
+                    if vertical[0] == self.board.get_number(i, j) and vertical[1] == Board.EMPTY:
+                        return [(i+1, j, 0 if vertical[0] == 1 else 1)]
+                    if vertical[1] == self.board.get_number(i, j) and vertical[0] == Board.EMPTY:
+                        return [(i-1, j, 0 if vertical[1] == 1 else 1)]
+
         
         return []
 
     def find_action_due_to_zeros_and_ones(self) -> list:
 
+        odd = self.board.size % 2 != 0
+
         for i in range(self.board.size):
             row = self.board.get_row(i)
-            j = TakuzuState.find_empty_position(row)
-            if j == -1:
-                continue
+            col = self.board.get_col(i)
+            empty_row = TakuzuState.find_empty_position(row)
+            empty_col = TakuzuState.find_empty_position(col)
+            
 
-            if self.board.size % 2 == 0:
-                if TakuzuState.count_occurrences(row, 1) >= self.board.size / 2:
-                    return [(i, j, 0)]
+            zeros_row, ones_row = TakuzuState.count_zeros_and_ones(row)
+            zeros_col, ones_col = TakuzuState.count_zeros_and_ones(col)
+
+            if not odd:
+
+                limit = self.board.size / 2
+                if empty_row != -1:
+                    if zeros_row >= limit:
+                        return [(i, empty_row, 1)]
+                    if ones_row >= limit:
+                        return [(i, empty_row, 0)]
+                if empty_col != -1:
+                    if zeros_col >= limit:
+                        return [(empty_col, i, 1)]
+                    if ones_col >= limit:
+                        return [(empty_col, i, 0)]
+
             else:
-                if TakuzuState.count_occurrences(row, 1) > self.board.size / 2 :
-                    return [(i, j, 0)]
+                limit = self.board.size // 2 + 1
 
-            if TakuzuState.count_occurrences(row, 0) >= self.board.size / 2:
-                return [(i, j, 1)]
-
-        del j
-        del i
-
-        for j in range(self.board.size):
-            col = self.board.get_col(j)
-            i = TakuzuState.find_empty_position(col)
-            if i == -1:
-                continue
-
-
-            if self.board.size % 2 == 0:
-                if TakuzuState.count_occurrences(col, 1) >= self.board.size / 2:
-                    return [(i, j, 0)]
-            else:
-                if TakuzuState.count_occurrences(col, 1) > self.board.size / 2 :
-                    return [(i, j, 0)]
-
-            if TakuzuState.count_occurrences(col, 0) >= self.board.size / 2:
-                return [(i, j, 1)]
-      
+                if empty_row != -1:
+                    if zeros_row >= limit:
+                        return [(i, empty_row, 1)]
+                    if ones_row >= limit:
+                        return [(i, empty_row, 0)]
+                if empty_col != -1:
+                    if zeros_col >= limit:
+                        return [(empty_col, i, 1)]
+                    if ones_col >= limit:
+                        return [(empty_col, i, 0)]
+               
         return []
                     
     def play_action(self, action : Tuple[int, int, int]) -> "TakuzuState":
@@ -266,7 +316,7 @@ class TakuzuState:
         return TakuzuState(new_board)
 
     def is_valid(self) -> bool:
-        return self.board.less_than_two_equal_adjacents() and self.board.equal_zeros_and_ones() and self.board.all_diff_rows_and_cols()
+        return self.board.all_diff_rows_and_cols()
     
     def is_goal(self) -> bool:
         return self.is_valid()
@@ -281,27 +331,27 @@ class Takuzu(Problem):
     def actions(self, state: TakuzuState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
+
+        if not state.board.equal_zeros_and_ones():
+            return []
         
         adjacent = state.find_action_due_to_adjacents()
         if adjacent != []:
+            # print("Adjacent: ", adjacent)
             return adjacent
 
         zeros_and_ones = state.find_action_due_to_zeros_and_ones()
         if zeros_and_ones != []:
+            # print("zeros and ones: ", zeros_and_ones)
             return zeros_and_ones
 
-        if not state.board.less_than_two_equal_adjacents() or not state.board.all_diff_rows_and_cols():
-            return []
-
-
-        actions = []
         for i in range(state.board.size):
             for j in range(state.board.size):
-                if state.board.get_number(i, j) == 2:
-                    actions.append((i, j, 0))
-                    actions.append((i, j, 1))
+                if state.board.get_number(i, j) == Board.EMPTY:
+                    return [(i, j, 0), (i, j, 1)]
 
-        return actions
+        return []
+
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
