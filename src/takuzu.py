@@ -171,7 +171,11 @@ class Board:
         """
 
         size = int(stdin.readline())
-        board = np.array([[int(x) for x in stdin.readline().split()] for _ in range(size)])
+        board = np.zeros((size, size), dtype=int)
+        for i in range(size):
+            line = stdin.readline().split()
+            for j in range(size):
+                board[i][j] = int(line[j])
 
         return Board(board, size)
 
@@ -229,15 +233,6 @@ class TakuzuState:
                 return i
 
         return -1
-
-    @staticmethod
-    def find_empty_positions(array: np.ndarray) -> list:
-        empty_positions = []
-        for i in range(array.size):
-            if array[i] == Board.EMPTY:
-                empty_positions.append(i)
-
-        return empty_positions
 
     def find_action_due_to_adjacents(self) -> list:
         for i in range(self.board.size):
@@ -308,6 +303,8 @@ class TakuzuState:
                         return [(empty_col, i, 0)]
                
         return []
+
+
                     
     def play_action(self, action : Tuple[int, int, int]) -> "TakuzuState":
         new_board = self.board.copy()
