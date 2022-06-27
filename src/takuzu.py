@@ -354,8 +354,16 @@ class Takuzu(Problem):
     
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        # TODO
-        pass
+                
+        board = node.state.board
+
+        res = 0
+        for i in range(board.size):
+            for j in range(board.size):
+                if board.get_number(i, j) == Board.EMPTY:
+                    res += 1
+
+        return res
 
 
 
@@ -369,7 +377,7 @@ if __name__ == "__main__":
    
     problem = Takuzu(board)
     
-    goal_node = depth_first_tree_search(problem)
+    goal_node = astar_search(problem)
    
     print(goal_node.state.board, end='')
 
