@@ -377,7 +377,7 @@ if __name__ == "__main__":
    
     problem = Takuzu(board)
     
-    goal_node = astar_search(problem)
+    goal_node = depth_first_tree_search(problem)
    
     print(goal_node.state.board, end='')
 
