@@ -2,14 +2,12 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# Grupo tp036:
+# 99053 André Torres
+# 99074 Gonçalo Nunes
 
 from sys import stdin
-from more_itertools import adjacent
 import numpy as np
-from typing import Tuple
 from search import (
     Problem,
     Node,
@@ -35,7 +33,7 @@ class Board:
         
         return self.board[row][col]
 
-    def adjacent_vertical_numbers(self, row: int, col: int) -> Tuple[int, int]:
+    def adjacent_vertical_numbers(self, row: int, col: int) -> tuple:
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
 
@@ -49,7 +47,7 @@ class Board:
         
         return (self.board[row-1][col], self.board[row+1][col])
         
-    def adjacent_horizontal_numbers(self, row: int, col: int) -> Tuple[int, int]:
+    def adjacent_horizontal_numbers(self, row: int, col: int) -> tuple:
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
         
@@ -107,7 +105,7 @@ class Board:
 
     def equal_zeros_and_ones(self) -> bool:
         """
-        Verifica se cada linha e coluna do tabuleiro contem igual numero de 0's e 1's
+        Verifica se cada linha e coluna do tabuleiro contem igual numero de 0's e 1's ou mais um para tabuleiros de dimensão ímpar
         """
 
         odd = self.board.size % 2 != 0
@@ -216,15 +214,6 @@ class TakuzuState:
 
         return zeros, ones
 
-    
-    @staticmethod
-    def count_occurrences(array: np.ndarray, number: int):
-        count = 0
-        for i in range(array.size):
-            if array[i] == number:
-                count += 1
-
-        return count
 
     @staticmethod
     def find_empty_position(array: np.ndarray) -> int:
@@ -269,7 +258,6 @@ class TakuzuState:
             col = self.board.get_col(i)
             empty_row = TakuzuState.find_empty_position(row)
             empty_col = TakuzuState.find_empty_position(col)
-            
 
             zeros_row, ones_row = TakuzuState.count_zeros_and_ones(row)
             zeros_col, ones_col = TakuzuState.count_zeros_and_ones(col)
@@ -306,7 +294,7 @@ class TakuzuState:
 
 
                     
-    def play_action(self, action : Tuple[int, int, int]) -> "TakuzuState":
+    def play_action(self, action: tuple) -> "TakuzuState":
         new_board = self.board.copy()
         new_board.change_number(action[0], action[1], action[2])
 
@@ -334,12 +322,10 @@ class Takuzu(Problem):
         
         adjacent = state.find_action_due_to_adjacents()
         if adjacent != []:
-            # print("Adjacent: ", adjacent)
             return adjacent
 
         zeros_and_ones = state.find_action_due_to_zeros_and_ones()
         if zeros_and_ones != []:
-            # print("zeros and ones: ", zeros_and_ones)
             return zeros_and_ones
 
         for i in range(state.board.size):
@@ -371,16 +357,13 @@ class Takuzu(Problem):
         # TODO
         pass
 
-    # TODO: outros metodos da classe
 
 
 if __name__ == "__main__":
-    # TODO:
-    # Ler o ficheiro de input de sys.argv[1],
+    # Ler o ficheiro de input
     # Usar uma técnica de procura para resolver a instância,
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
-
 
     board = Board.parse_instance_from_stdin()
    
